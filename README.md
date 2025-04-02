@@ -1,4 +1,4 @@
-# Disclaimer
+### Disclaimer
 
 Please note that the code presented in this repository constitutes a specific component from a broader project. It is provided solely for illustrative and PhD application-focused purposes. The complete project encompasses a wider range of functionalities and modules beyond what is currently displayed here due to privacy considerations.
 
@@ -12,12 +12,13 @@ This is an implementation of Cross-modal attention that serves as an advanced fu
 
 ## Repository Structure
 
-- `data/`: Directory to store the dataset (e.g., `amazon_reviews.csv`).
+- `data/`: Directory to store the dataset - image and text.
+- `model_checkpoints/`: Directory to store the model weights 
 - `scripts/`: Directory containing the main scripts for dataset handling, model definition, and training.
-  - `dataset.py`: Script for the `AmazonReviewDataset` class.
+  - `data.py`: Script for the `AmazonReviewDataset` class.
   - `models.py`: Script for the model definitions including cross-modal attention and multimodal sentiment model.
   - `train.py`: Script for training and evaluating the model.
-- `notebooks/`: Directory containing Jupyter notebooks for visualization and analysis.
+- `visualization/`: Directory containing Jupyter notebooks for visualization and analysis.
   - `attention_weights.py`: Python for visualizing attention weights and model predictions.
 
 ## Setup
