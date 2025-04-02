@@ -136,7 +136,7 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs} - Validation Precision: {precision_val:.4f}, Recall: {recall_val:.4f}, F1: {f1_val:.4f}')
     model.train() 
 
-# Model Evaluation with Attention Visualization
+# Final Evaluation with Attention Visualization
 model.eval()
 correct_preds = 0
 total_preds = 0
