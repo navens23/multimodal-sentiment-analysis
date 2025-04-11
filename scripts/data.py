@@ -30,11 +30,7 @@ class AmazonReviewDataset(Dataset):
         text = self.dataframe.iloc[idx][self.text_column]
         image_path = self.dataframe.iloc[idx][self.image_column]
         label = self.dataframe.iloc[idx][self.label_column]
-
-        # Process the text
         text_inputs = self.tokenizer(text, padding='max_length', truncation=True, max_length=128, return_tensors='pt')
-
-        # Process the image
         try:
             original_image = Image.open(image_path).convert('RGB')
             if self.transform:
