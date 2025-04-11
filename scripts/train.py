@@ -12,18 +12,15 @@ import matplotlib.pyplot as plt
 from dataset import AmazonReviewDataset
 from models import MultimodalSentimentModel
 
-# Tokenizer and processor
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# Image transformations
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=clip_processor.image_mean, std=clip_processor.image_std), 
 ])
 
-# Data loading
 try:
     df = pd.read_csv('data/amazon_reviews.csv')  
 except FileNotFoundError:
@@ -34,17 +31,15 @@ if not all(col in df.columns for col in ['text', 'image_path', 'label']):
     print("Error: The CSV file must contain 'text', 'image_path', and 'label' columns.")
     exit()
 
-# Handle Label Mapping using LabelEncoder
 le = LabelEncoder()
 df['label'] = le.fit_transform(df['label'])
 num_labels = len(le.classes_)
 
-train_df, val_df = train_test_split(df, test_size=0.2, random_state=42) # Added random_state for reproducibility
+train_df, val_df = train_test_split(df, test_size=0.2, random_state=42) 
 
 train_dataset = AmazonReviewDataset(train_df, 'text', 'image_path', 'label', tokenizer, transform)
 val_dataset = AmazonReviewDataset(val_df, 'text', 'image_path', 'label', tokenizer, transform)
 
-# Filter out None values (skipped samples) from the datasets
 train_dataset.dataframe = train_dataset.dataframe.dropna(subset=['label', 'image_path', 'text']).reset_index(drop=True)
 val_dataset.dataframe = val_dataset.dataframe.dropna(subset=['label', 'image_path', 'text']).reset_index(drop=True)
 
@@ -71,15 +66,12 @@ def collate_fn(batch):
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, collate_fn=collate_fn)
 val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn)
 
-# Model Training
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = MultimodalSentimentModel(num_labels=num_labels).to(device)
 
-# Optimizer and loss function
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
 criterion = torch.nn.CrossEntropyLoss()
 
-# Train loop
 num_epochs = 3
 for epoch in range(num_epochs):
     model.train()
@@ -106,7 +98,6 @@ for epoch in range(num_epochs):
     avg_loss = total_loss / len(train_loader)
     print(f'Epoch {epoch+1}/{num_epochs} - Loss: {avg_loss:.4f}')
 
-    # Evaluation after each epoch
     model.eval()
     correct_preds = 0
     total_preds = 0
@@ -136,13 +127,12 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs} - Validation Precision: {precision_val:.4f}, Recall: {recall_val:.4f}, F1: {f1_val:.4f}')
     model.train() 
 
-# Final Evaluation with Attention Visualization
 model.eval()
 correct_preds = 0
 total_preds = 0
 all_preds = []
 all_labels = []
-visualization_count = 5 # Visualize attention for a few examples
+visualization_count = 5 
 
 with torch.no_grad():
     for i, batch in enumerate(val_loader):
@@ -152,21 +142,15 @@ with torch.no_grad():
         text_inputs = {key: value.to(device) for key, value in text_inputs.items()}
         images = images.to(device)
         labels = labels.to(device)
-
-        # Forward pass
         outputs = model(text_inputs, images)
         logits = outputs
         attention_weights = model.cross_attention.attention_weights.cpu().numpy()
-
-        # Predict the sentiment
         _, preds = torch.max(logits, dim=1)
-
         correct_preds += (preds == labels).sum().item()
         total_preds += labels.size(0)
         all_preds.extend(preds.cpu().numpy())
         all_labels.extend(labels.cpu().numpy())
 
-        # Visualize attention 
         if i < visualization_count:
             for j in range(len(text_inputs['input_ids'])):
                 text = tokenizer.decode(text_inputs['input_ids'][j], skip_special_tokens=True)
