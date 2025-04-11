@@ -74,22 +74,17 @@ class MultimodalSentimentModel(nn.Module):
         Returns:
             torch.Tensor: Tensor of output logits (batch_size, num_labels).
         """
-        # Text features
         text_outputs = self.text_model(**text_inputs, output_hidden_states=True)
         text_features = text_outputs.pooler_output
 
-        # Image features
         image_features = self.clip_model.get_image_features(images)
         image_features = image_features / image_features.norm(dim=-1, keepdim=True) 
 
-        # Cross-modal attention
         attended_image_features, attention_weights = self.cross_attention(text_features, image_features)
         self.attention_weights = attention_weights # Store for visualization
 
-        # Concatenate text features and attended image features
         combined_features = torch.cat((text_features, attended_image_features), dim=1)
         combined_features = self.dropout(combined_features)
 
-        # Classifier
         logits = self.classifier(combined_features)
         return logits
