@@ -8,27 +8,22 @@ from torchvision import transforms
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-# Load the tokenizer and model
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 model = MultimodalSentimentModel(num_labels=3)  
 model.load_state_dict(torch.load('models/model_checkpoint.pth')) 
 model.eval()
 
-# Define image transformations
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-# Load the dataset
 df = pd.read_csv('data/amazon_reviews.csv')
 le = LabelEncoder()
 df['label'] = le.fit_transform(df['label'])
 dataset = AmazonReviewDataset(df, 'text', 'image_path', 'label', tokenizer, transform)
 dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
-
-# Visualize attention weights
 def visualize_attention(text, image, attention_weight, label, prediction):
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
@@ -40,7 +35,6 @@ def visualize_attention(text, image, attention_weight, label, prediction):
     plt.title(f'True Label: {label}, Prediction: {prediction}')
     plt.show()
 
-# Iterate through the dataloader and visualize
 with torch.no_grad():
     for i, (text_inputs, images, labels, original_images) in enumerate(dataloader):
         if i >= 5:  # Visualize 5 examples
